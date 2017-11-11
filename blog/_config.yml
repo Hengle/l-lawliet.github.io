@@ -3,16 +3,16 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle:
+title: Lawliet's blog
+subtitle: 希望本无所谓有 无所谓无的 就像世上本没有路 走的人多了 也就成了路
 description:
-author: John Doe
-language:
-timezone:
+author: Lawliet
+language: zh-CN
+timezone: 
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: https://l-lawliet.github.io/
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -26,6 +26,14 @@ category_dir: categories
 code_dir: downloads/code
 i18n_dir: :lang
 skip_render:
+	
+# Archives 
+## 2: Enable pagination #激活分页
+## 1: Disable pagination #禁止分页
+## 0: Fully Disable #全部禁止
+archive: 1
+category: 1
+tag: 1
 
 # Writing
 new_post_name: :title.md # File name of new posts
@@ -42,16 +50,7 @@ highlight:
   line_number: true
   auto_detect: false
   tab_replace:
-  
-# Home page setting
-# path: Root path for your blogs index page. (default = '')
-# per_page: Posts displayed per page. (0 = disable pagination)
-# order_by: Posts order. (Order by date descending by default)
-index_generator:
-  path: ''
-  per_page: 10
-  order_by: -date
-  
+
 # Category & Tag
 default_category: uncategorized
 category_map:
@@ -72,7 +71,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: yelee
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
