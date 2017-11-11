@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Unity3D插件开发教程（一）：自定义锚点组件 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="教你如何扩展Unity3D编辑器，订制锚点组件，在Scene视图上绘制线框物体。">
+<meta name="keywords" content="unity3d,unity3d editor tutorial">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D插件开发教程（一）：自定义锚点组件">
+<meta property="og:url" content="http://yoursite.com/2017/02/03/Unity3D-Editor-Tutorial-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="教你如何扩展Unity3D编辑器，订制锚点组件，在Scene视图上绘制线框物体。">
+<meta property="og:image" content="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture2.png?raw=true">
+<meta property="og:image" content="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture4.png?raw=true">
+<meta property="og:image" content="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture3.png?raw=true">
+<meta property="og:image" content="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture1.png?raw=true">
+<meta property="og:updated_time" content="2017-02-03T10:40:47.241Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Unity3D插件开发教程（一）：自定义锚点组件">
+<meta name="twitter:description" content="教你如何扩展Unity3D编辑器，订制锚点组件，在Scene视图上绘制线框物体。">
+<meta name="twitter:image" content="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture2.png?raw=true">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Unity3D-Editor-Tutorial-1" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/02/03/Unity3D-Editor-Tutorial-1/" class="article-date">
+  <time datetime="2017-02-03T09:25:44.000Z" itemprop="datePublished">2017-02-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Unity3D插件开发教程（一）：自定义锚点组件
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>教你如何扩展Unity3D编辑器，订制锚点组件，在Scene视图上绘制线框物体。<a id="more"></a></p>
+<h3 id="前言-Preface"><a href="#前言-Preface" class="headerlink" title="前言 Preface"></a>前言 Preface</h3><p>在制作游戏（应用）时，很多时候不能把所有对象堆放到场景里，因为这样，场景的加载和实例化会非常慢，会有明显的卡顿感觉。在这种情况下就需要有顺序的初始化场景的对象，例如地面会在一开始初始化，小草石头等小物件放后面，场景上粒子特效（小草上冒起的光点等）放到最后。</p>
+<p>那小草和特效应该放置在哪个位置呢、应该旋转多少度、缩放多少呢，这个时候我们可能需要定制一个组件：锚点。</p>
+<p>这里所说的锚点（Anchor）相对于网页制作的锚点只有记录坐标、旋转、缩放和层级（parent是谁）等Transform组件内容的作用。</p>
+<p>既然用于记录Transform内容，那么使用空的GameObject或者使用Cube等组件就行了，为什么要定制一个锚点组件呢？<br>这里说说他们的优缺点。</p>
+<p><strong>空GameObject：</strong> 只有在选中对象时候，才会显示相应坐标轴、旋转轴、缩放轴，而且一次只能选择一个轴，非常的不方便。</p>
+<p><strong>Cube等基础物体：</strong> 相对于空GameObject，Cube比较直观的能观察到变换，可缺点也很明显，自带的MeshFilter、MeshRenderer、BoxCollider等组件会降低运行效率。</p>
+<p><strong>自定义锚点组件：</strong> 在使用以上两种方案都感到不方便的时候，我们就需要创建一种编辑状态拥有可视化图像可以变换的，并且在运行状态不会影响效率的锚点组件。利用编辑器的Handles类在Scene界面绘制线框。</p>
+<p><img src="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture2.png?raw=true" alt="image"></p>
+<blockquote>
+<p><strong>Editor入门要点：</strong><br>Unity编译器扩展的开发有如下规定，如果是编辑器脚本，你需要在Editor文件夹下创建你的插件代码，项目中任何目录下创建的Editor文件夹都会被编译成编译器使用的代码。<br>ps:插件开发最好有一套自己的分类管理，方便管理和修改，例如很多人喜欢把所有插件放置在Plugin目录下。</p>
+</blockquote>
+<h3 id="准备-Prepare"><a href="#准备-Prepare" class="headerlink" title="准备 Prepare"></a>准备 Prepare</h3><p>知识要点：    </p>
+<ul>
+<li><strong>Editor</strong></li>
+<li><strong>Handles</strong></li>
+<li><strong>MenuItem</strong></li>
+<li><strong>Selection</strong></li>
+</ul>
+<p>使用版本：</p>
+<ul>
+<li><strong>Unity3D 5.3.3</strong></li>
+</ul>
+<p>目标：</p>
+<ul>
+<li><strong>使用Handles类在Scene视图绘制一个正方体</strong></li>
+</ul>
+<p>整个插件的结构：</p>
+<p><img src="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture4.png?raw=true" alt="image"></p>
+<h3 id="正文-Main"><a href="#正文-Main" class="headerlink" title="正文 Main"></a>正文 Main</h3><p>首先我们在AnchorComponent创建一个AnchorComponent.cs代码（注意命名空间可能会报错，可以修改一下命名空间）。</p>
+<p>AnchorComponent.cs就是我们要实现的锚点组件了。它只有简单几个属性用于记录锚点的参数。所以在运行时并不会对效率产生多大的影响。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">AnchorComponent</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> 线框颜色</span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="keyword">public</span> Color color = <span class="keyword">new</span> Color(<span class="number">0.3</span>f, <span class="number">0.9</span>f, <span class="number">0.3</span>f);</span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> 是否使用全局缩放</span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">bool</span> isUserLossyScale = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> 是否使用Handles标准尺寸</span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">bool</span> isUserHandleSize = <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture3.png?raw=true" alt="image"></p>
+<p>以上的属性待会在使用到的时候会一一给予介绍。</p>
+<hr>
+<p>然后我们在AnchorComponent/Editor文件夹下创建AnchorComponentEditor.cs代码，此代码用于在Scene视图上绘制线框。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">CustomEditor(typeof(AnchorComponent))</span>]</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">AnchorComponentEditor</span> : <span class="title">Editor</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">OnSceneGUI</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">//....</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AnchorComponentEditor需要继承Editor类，扩展Scene、 Hierarchy、Inspector等视图的插件都需要继承Editor类，并创建特定的函数用于相应的扩展。</p>
+<p>例如，本文需要在Scene视图上绘制，则要创建OnSceneGUI函数。并且在OnSceneGUI函数里书写绘制逻辑。</p>
+<p>接着在类的声明前加入[CustomEditor(Type t)]，这是要告诉编辑器，我这个编辑类是给哪个组件使用的。</p>
+<hr>
+<p>然后我们要在上面的OnSceneGUI函数里添加如下代码。<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">OnSceneGUI</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AnchorComponent compontent = target <span class="keyword">as</span> AnchorComponent;</span><br><span class="line"></span><br><span class="line">    Handles.color = compontent.color;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//绘制实心正方体</span></span><br><span class="line">    <span class="comment">//Handles.CubeCap(compontent.GetInstanceID(), compontent.transform.position, compontent.transform.rotation, 1.0f);</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//绘制线框正方体</span></span><br><span class="line">    DrawWireframeBox(compontent.transform, compontent.isUserLossyScale, compontent.isUserHandleSize);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Editor类的target属性可以获取到你正在选择操作的组件。当然，要强制性转换成相应的组件类才能使用。</p>
+<p><strong>Handles类：</strong> 包含了大量在Scene视图绘制直线、弧线、锥体、圆等基础图形的函数。</p>
+<p><strong>Handles.color：</strong> 很好理解，就是设置接下来绘制的对象的颜色。</p>
+<p><strong>Handles.CubeCap：</strong> 绘制一个实心的正方体，这里会介绍到是因为可能有人比较喜欢看实心的正方体。</p>
+<p>接下来是绘制线框正方体，由于逻辑比较多，所以另外写成一个函数<strong>DrawWireframeBox</strong>。</p>
+<blockquote>
+<p>PS：5.4版本后，Handles新增了绘制线框正方体DrawWireCube的方法，由于暂无接触，所以这里不多介绍，使用5.4版本的童鞋可以实践下</p>
+</blockquote>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">DrawWireframeBox</span>(<span class="params">Transform transform, <span class="keyword">bool</span> isUserLossyScale = <span class="literal">false</span>, <span class="keyword">bool</span> isUserHandleSize = <span class="literal">false</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Matrix4x4 matrix = Handles.matrix;</span><br><span class="line"></span><br><span class="line">    Vector3 size;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (isUserHandleSize)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">float</span> handleSize = HandleUtility.GetHandleSize(transform.position);</span><br><span class="line"></span><br><span class="line">        size = Vector3.one * handleSize;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        size = transform.localScale;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (isUserLossyScale)</span><br><span class="line">    &#123;</span><br><span class="line">        size.Scale(transform.lossyScale);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建一个无缩放影响的矩阵</span></span><br><span class="line">    Matrix4x4 tempMatrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//把矩阵赋予给Handles</span></span><br><span class="line">    Handles.matrix = tempMatrix;</span><br><span class="line"></span><br><span class="line">    Vector3 vector = size * <span class="number">0.5</span>f;</span><br><span class="line"></span><br><span class="line">    Vector3[] points = <span class="keyword">new</span> Vector3[<span class="number">8</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">//设置正方体八个顶点</span></span><br><span class="line">    points[<span class="number">0</span>] = <span class="keyword">new</span> Vector3(vector.x, vector.y, vector.z);</span><br><span class="line">    points[<span class="number">1</span>] = <span class="keyword">new</span> Vector3(vector.x, -vector.y, vector.z);</span><br><span class="line">    points[<span class="number">2</span>] = <span class="keyword">new</span> Vector3(vector.x, -vector.y, -vector.z);</span><br><span class="line">    points[<span class="number">3</span>] = <span class="keyword">new</span> Vector3(vector.x, vector.y, -vector.z);</span><br><span class="line">    points[<span class="number">4</span>] = <span class="keyword">new</span> Vector3(-vector.x, vector.y, vector.z);</span><br><span class="line">    points[<span class="number">5</span>] = <span class="keyword">new</span> Vector3(-vector.x, -vector.y, vector.z);</span><br><span class="line">    points[<span class="number">6</span>] = <span class="keyword">new</span> Vector3(-vector.x, -vector.y, -vector.z);</span><br><span class="line">    points[<span class="number">7</span>] = <span class="keyword">new</span> Vector3(-vector.x, vector.y, -vector.z);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//绘制正方体12条线</span></span><br><span class="line">    Handles.DrawLine(points[<span class="number">0</span>], points[<span class="number">1</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">1</span>], points[<span class="number">2</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">2</span>], points[<span class="number">3</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">3</span>], points[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">    Handles.DrawLine(points[<span class="number">4</span>], points[<span class="number">5</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">5</span>], points[<span class="number">6</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">6</span>], points[<span class="number">7</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">7</span>], points[<span class="number">4</span>]);</span><br><span class="line"></span><br><span class="line">    Handles.DrawLine(points[<span class="number">0</span>], points[<span class="number">4</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">1</span>], points[<span class="number">5</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">2</span>], points[<span class="number">6</span>]);</span><br><span class="line">    Handles.DrawLine(points[<span class="number">3</span>], points[<span class="number">7</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//用与显示顶点位置与索引</span></span><br><span class="line">    <span class="comment">/*for (int i = 0; i &lt; 8; i++)</span></span><br><span class="line"><span class="comment">    &#123;</span></span><br><span class="line"><span class="comment">        Handles.Label(points[i], i.ToString());</span></span><br><span class="line"><span class="comment">    &#125;*/</span></span><br><span class="line"></span><br><span class="line">    Handles.matrix = matrix;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于这部分代码比较多，所以分开一块块来解释。<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//首先缓存了Handles的矩阵，因为后面需要重新赋值。作用不大，不过养成良好的习惯。</span></span><br><span class="line">Matrix4x4 matrix = Handles.matrix;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//然后判断是否使用Handles的固定尺寸。</span></span><br><span class="line"><span class="comment">//如果是，就使用HandleUtility.GetHandleSize方法获取，这是根据坐标到摄像机的距离返回的尺寸。</span></span><br><span class="line"><span class="keyword">if</span> (isUserHandleSize)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">float</span> handleSize = HandleUtility.GetHandleSize(transform.position);</span><br><span class="line"></span><br><span class="line">    size = Vector3.one * handleSize;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">    size = transform.localScale;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//是否使用全局缩放，此方法是为了应对父对象们的缩放导致的缩放，建议为true，因为这才是加载进去的物体的正确缩放。</span></span><br><span class="line"><span class="keyword">if</span> (isUserLossyScale)</span><br><span class="line">&#123;</span><br><span class="line">    size.Scale(transform.lossyScale);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//这里是过去锚点的全局坐标和旋转，然后生成矩阵给Handles使用，注意，这里是使用全局的，而且缩放使用一就是了。</span></span><br><span class="line">Matrix4x4 tempMatrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);</span><br><span class="line"></span><br><span class="line"><span class="comment">//把矩阵赋予给Handles</span></span><br><span class="line">Handles.matrix = tempMatrix;</span><br></pre></td></tr></table></figure>
+<p>接下来就是设置8个点了，代码就不重复贴了，如果对8个点的位置没有概念，可以使用后面注释了的Handles.Label把索引显示出来，可以直观看出效果如何。</p>
+<p><img src="https://github.com/L-Lawliet/UnityEditorTutorial/blob/master/AnchorComponent/Picture1.png?raw=true" alt="image"></p>
+<p>接下来是绘制12根线，这里由于比较直观让大家知道对应的线的位置，所以使用DarwLine来一根根画出来。</p>
+<p>接下来的就是超纲内容了，跟锚点没关系的了。<br>就是，每次生成锚点的时候都要添加一个GameObject，然后挂一个锚点组件好像比较麻烦哦。<br>那么就可以把锚点组件加入到菜单里。</p>
+<p>首先在AnchorComponent/Editor文件夹下创建AnchorComponentMenu.cs代码，用于增加添加锚点组件的菜单选项。</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">MenuItem(<span class="meta-string">"GameObject/3D Object/AnchorComponent"</span>, false, 10000)</span>]</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">CreateAnchorComponent</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    GameObject anchorObject = <span class="keyword">new</span> GameObject(<span class="string">"AnchorObject"</span>);</span><br><span class="line"></span><br><span class="line">    anchorObject.AddComponent&lt;AnchorComponent&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (Selection.activeObject != <span class="literal">null</span>) </span><br><span class="line">    &#123;</span><br><span class="line">        GameObject parent = Selection.activeObject <span class="keyword">as</span> GameObject;</span><br><span class="line">        anchorObject.transform.SetParent(parent.transform);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>MenuItem是Unity添加菜单的类，使用方法之一（后面会教其他方法）就是在static函数上面增加MenuItem特性(Attribute)。</p>
+<ul>
+<li>第一个参数：菜单的地址，我们使用GameObject/3D Object，因为Hierarchy视图中的菜单一级目录是Unity默认绘制的，如果不想整个菜单重写，那么只能使用一个二级目录。</li>
+<li>第二个参数：未试验过。</li>
+<li>第三个参数：菜单的优先级，值越大，排的越后。使用10000可以保证在默认组件最后。</li>
+</ul>
+<p>然后在函数里创建一个GameObject，然后为其添加锚点组件。<br>接着使用Selection.activeObject属性获取当前选择的对象，然后把新建的锚点添加到选择对象的子级。</p>
+<h3 id="源码-Code"><a href="#源码-Code" class="headerlink" title="源码 Code"></a>源码 Code</h3><blockquote>
+<p><a href="https://github.com/L-Lawliet/UnityEditorTutorial/tree/master/AnchorComponent" target="_blank" rel="external">源代码</a></p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/02/03/Unity3D-Editor-Tutorial-1/" data-id="cj9uxaef60001a8nrr5wwu1e1" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/unity3d/">unity3d</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/unity3d-editor-tutorial/">unity3d editor tutorial</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/11/10/hello-world/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Hello World
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/unity3d/">unity3d</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/unity3d-editor-tutorial/">unity3d editor tutorial</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/unity3d/" style="font-size: 10px;">unity3d</a> <a href="/tags/unity3d-editor-tutorial/" style="font-size: 10px;">unity3d editor tutorial</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/11/10/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2017/02/03/Unity3D-Editor-Tutorial-1/">Unity3D插件开发教程（一）：自定义锚点组件</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
